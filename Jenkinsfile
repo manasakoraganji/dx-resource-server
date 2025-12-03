@@ -112,7 +112,26 @@ pipeline {
       steps{
         node('built-in') {
           script{
-            sh 'zap -daemon -host 127.0.0.1 -port 8090 -config api.disablekey=true'
+            sh """
+              echo '[*] Cleaning up old ZAP container if exists...'
+              docker stop zap-daemon || true && docker rm zap-daemon || true
+              echo '[*] Starting ZAP in Docker...'
+              docker run --name zap-daemon --network host -u zap -d \
+                -p 8090:8090 \
+                ghcr.io/zaproxy/zaproxy:stable \
+                zap.sh -daemon \
+                  -host 0.0.0.0 \
+                  -port 8090 \
+                  -config api.disablekey=true \
+                  -config api.addrs.addr.name=.* \
+                  -config api.addrs.addr.regex=true
+
+              echo '[*] Waiting for ZAP to be ready...'
+              until curl -s http://localhost:8090/JSON/core/view/version/ > /dev/null; do
+                sleep 2
+              done
+              echo 'ZAP is ready at http://localhost:8090'
+            """
             sh "curl http://localhost:8090/JSON/pscan/action/disableScanners/?ids=10096"
           }
         }
