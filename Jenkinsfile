@@ -161,9 +161,15 @@ pipeline {
         }
         cleanup{
           script{
+           node('built-in') {
+            sh '''
+              echo "[*] Cleaning ZAP on master..."
+              docker stop zap-daemon || true
+              docker rm zap-daemon || true
+            '''
+          }
             sh 'sudo update-alternatives --set java /usr/lib/jvm/java-11-openjdk-amd64/bin/java'
             sh 'docker compose -f docker-compose.test.yml down --remove-orphans'
-            sh 'docker stop zap-daemon || true && docker rm zap-daemon || true'
           }
         }
       }
