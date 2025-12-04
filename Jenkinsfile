@@ -58,7 +58,7 @@ pipeline {
             script{
               sh 'cp /home/ubuntu/configs/rs-config-test.json ./secrets/all-verticles-configs/config-test.json'
               sh 'cp /home/ubuntu/configs/keystore.jks ./secrets/all-verticles-configs/keystore.jks'
-              sh 'mvn clean test checkstyle:checkstyle pmd:pmd' || true
+              sh 'mvn clean test checkstyle:checkstyle pmd:pmd'
             }
             xunit (
               thresholds: [ skipped(failureThreshold: '20'), failed(failureThreshold: '0') ],
@@ -82,9 +82,10 @@ pipeline {
             )
           }
             failure{
-              script{
-                sh 'docker compose -f docker-compose.test.yml down --remove-orphans'
-              }
+              xunit (
+              thresholds: [ skipped(failureThreshold: '20'), failed(failureThreshold: '0') ],
+              tools: [ JUnit(pattern: 'target/surefire-reports/*.xml') ]
+              )
               error "Test failure. Stopping pipeline execution!"
             }
             cleanup{
