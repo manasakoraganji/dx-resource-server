@@ -57,8 +57,9 @@ pipeline {
         stage('Unit Tests and Code Coverage Test'){
           steps{
             script{
-              sh 'cp /home/ubuntu/configs/rs-config-test.json ./secrets/all-verticles-configs/config-test.json'
-              sh 'cp /home/ubuntu/configs/keystore.jks ./secrets/all-verticles-configs/keystore.jks'
+              sh 'cp -r example-configs/configs .'
+              sh 'cp /home/ubuntu/configs/rs-config-test.json ./configs/config-test.json'
+              //sh 'cp /home/ubuntu/configs/keystore.jks ./secrets/all-verticles-configs/keystore.jks'
               sh 'mvn clean test checkstyle:checkstyle pmd:pmd'
             }
             xunit (
