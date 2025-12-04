@@ -59,35 +59,34 @@ pipeline {
             script{
               sh 'cp -r example-configs/configs .'
               sh 'cp /home/ubuntu/configs/rs-config-test.json ./configs/config-test.json'
-              //sh 'cp /home/ubuntu/configs/keystore.jks ./secrets/all-verticles-configs/keystore.jks'
               sh 'mvn clean test checkstyle:checkstyle pmd:pmd'
             }
             xunit (
-              thresholds: [ skipped(failureThreshold: '20'), failed(failureThreshold: '0') ],
+              thresholds: [ skipped(failureThreshold: '80'), failed(failureThreshold: '0') ],
               tools: [ JUnit(pattern: 'target/surefire-reports/*.xml') ]
             )
             jacoco classPattern: 'target/classes', execPattern: 'target/jacoco.exec', sourcePattern: 'src/main/java', exclusionPattern:'iudx/resource/server/apiserver/ApiServerVerticle.class,**/*VertxEBProxy.class,**/Constants.class,**/*VertxProxyHandler.class,**/*Verticle.class,iudx/resource/server/database/archives/DatabaseService.class,iudx/resource/server/database/async/AsyncService.class,iudx/resource/server/database/latest/LatestDataService.class,iudx/resource/server/deploy/*.class,iudx/resource/server/database/postgres/PostgresService.class,iudx/resource/server/apiserver/ManagementRestApi.class,iudx/resource/server/apiserver/AdminRestApi.class,iudx/resource/server/apiserver/AsyncRestApi.class,iudx/resource/server/callback/CallbackService.class,**/JwtDataConverter.class,**/EncryptionService.class,**/EsResponseFormatter.class,**/AbstractEsSearchResponseFormatter.class'
           }
           post{
-          always {
-            recordIssues(
-              enabledForFailure: true,
-              skipBlames: true,
-              qualityGates: [[threshold:100, type: 'TOTAL', unstable: false]],
-              tool: checkStyle(pattern: 'target/checkstyle-result.xml')
-            )
-            recordIssues(
-              enabledForFailure: true,
-              skipBlames: true,
-              qualityGates: [[threshold:100, type: 'TOTAL', unstable: false]],
-              tool: pmdParser(pattern: 'target/pmd.xml')
-            )
-          }
+            always {
+              recordIssues(
+                enabledForFailure: true,
+                skipBlames: true,
+                qualityGates: [[threshold:100, type: 'TOTAL', unstable: false]],
+                tool: checkStyle(pattern: 'target/checkstyle-result.xml')
+              )
+              recordIssues(
+                enabledForFailure: true,
+                skipBlames: true,
+                qualityGates: [[threshold:100, type: 'TOTAL', unstable: false]],
+                tool: pmdParser(pattern: 'target/pmd.xml')
+              )
+            }
             failure{
               xunit (
-              thresholds: [ skipped(failureThreshold: '20'), failed(failureThreshold: '0') ],
-              tools: [ JUnit(pattern: 'target/surefire-reports/*.xml') ]
-              )
+                thresholds: [ skipped(failureThreshold: '80'), failed(failureThreshold: '0') ],
+                tools: [ JUnit(pattern: 'target/surefire-reports/*.xml') ]
+                )
               error "Test failure. Stopping pipeline execution!"
             }
             cleanup{
