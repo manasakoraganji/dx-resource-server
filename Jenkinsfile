@@ -168,6 +168,27 @@ pipeline {
                 sh 'mkdir -p configs'
                 sh 'scp /home/ubuntu/configs/rs-config-test.json ./configs/config-test.json'
                 sh 'bash Jenkins/resources/post-zap.sh --mvn'
+                sh '''
+                    echo "[*] Fetching ZAP alerts..."
+                    zap-cli --zap-url "http://10.139.0.10" --port 8090 alerts -f json > zap-alerts.json
+                '''
+
+                def alerts = readJSON file: 'zap-alerts.json'
+                def high = alerts.findAll { it.risk == "High" }.size()
+                def medium = alerts.findAll { it.risk == "Medium" }.size()
+                def low = alerts.findAll { it.risk == "Low" }.size()
+
+                echo "ZAP Alerts → High: ${high}, Medium: ${medium}, Low: ${low}"
+
+                if (high > 1) {
+                  error "ZAP Scan Failed: Too many HIGH alerts (${high})"
+                }
+                if (medium > 1) {
+                  error "ZAP Scan Failed: Too many MEDIUM alerts (${medium})"
+                }
+                if (low > 1) {
+                  error "ZAP Scan Failed: Too many LOW alerts (${low})"
+                }
                 publishHTML(target: [
                   allowMissing: false,
                   alwaysLinkToLastBuild: true,
