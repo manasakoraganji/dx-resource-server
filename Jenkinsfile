@@ -176,7 +176,9 @@ pipeline {
                     zap-cli --zap-url "http://10.139.0.10" --port 8090 alerts -f json > zap-alerts.json
                 '''
 
-                def alerts = readJSON file: 'zap-alerts.json'
+                def jsonText = readFile('zap-alerts.json')
+                def alerts = new groovy.json.JsonSlurper().parseText(jsonText)
+
                 def high = alerts.findAll { it.risk == "High" }.size()
                 def medium = alerts.findAll { it.risk == "Medium" }.size()
                 def low = alerts.findAll { it.risk == "Low" }.size()
