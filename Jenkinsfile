@@ -66,7 +66,7 @@ pipeline {
             }
             xunit (
               thresholds: [ skipped(failureThreshold: '40'), failed(failureThreshold: '0') ],
-              tools: [ JUnit(pattern: 'target/failsafe-reports/TEST-*.xml') ]
+              tools: [ JUnit(pattern: 'target/surefire-reports/*.xml') ]
             )
             jacoco classPattern: 'target/classes', execPattern: 'target/jacoco.exec', sourcePattern: 'src/main/java', exclusionPattern:'iudx/resource/server/apiserver/ApiServerVerticle.class,**/*VertxEBProxy.class,**/Constants.class,**/*VertxProxyHandler.class,**/*Verticle.class,iudx/resource/server/database/archives/DatabaseService.class,iudx/resource/server/database/async/AsyncService.class,iudx/resource/server/database/latest/LatestDataService.class,iudx/resource/server/deploy/*.class,iudx/resource/server/database/postgres/PostgresService.class,iudx/resource/server/apiserver/ManagementRestApi.class,iudx/resource/server/apiserver/AdminRestApi.class,iudx/resource/server/apiserver/AsyncRestApi.class,iudx/resource/server/callback/CallbackService.class,**/JwtDataConverter.class,**/EncryptionService.class,**/EsResponseFormatter.class,**/AbstractEsSearchResponseFormatter.class'
           }
@@ -88,7 +88,7 @@ pipeline {
             failure{
               xunit (
                 thresholds: [ skipped(failureThreshold: '40'), failed(failureThreshold: '0') ],
-                tools: [ JUnit(pattern: 'target/failsafe-reports/TEST-*.xml') ]
+                tools: [ JUnit(pattern: 'target/surefire-reports/*.xml') ]
                 )
               error "Test failure. Stopping pipeline execution!"
             }
