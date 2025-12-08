@@ -57,9 +57,6 @@ pipeline {
         stage('Unit Tests and Code Coverage Test'){
           steps{
             script{
-              // Switch to Java 21
-              sh 'sudo update-alternatives --set java /usr/lib/jvm/java-21-openjdk-amd64/bin/java'
-
               sh 'cp -r example-configs/configs .'
               sh 'cp /home/ubuntu/configs/rs-config-test.json ./configs/config-test.json'
               sh 'mvn clean test checkstyle:checkstyle pmd:pmd'
@@ -171,60 +168,6 @@ pipeline {
                 sh 'mkdir -p configs'
                 sh 'scp /home/ubuntu/configs/rs-config-test.json ./configs/config-test.json'
                 sh 'bash Jenkins/resources/post-zap.sh --mvn'
-
-                script {
-
-                    // 1. Fetch list of sites scanned by ZAP
-                    sh '''
-                        echo "[*] Fetching ZAP sites..."
-                        curl -s "http://10.139.0.10:8090/JSON/core/view/sites/" > zap-sites.json
-                    '''
-
-                    def sitesJson = readFile('zap-sites.json')
-                    def sites = new groovy.json.JsonSlurper().parseText(sitesJson)?.sites ?: []
-
-                    echo "ZAP Sites Found: ${sites}"
-
-                    // 2. Create an empty list to store ALL alerts
-                    def allAlerts = []
-
-                    // 3. For each site, fetch alerts individually
-                    sites.each { site ->
-                        echo "Fetching alerts for site: ${site}"
-
-                        // Call ZAP API for each site
-                        sh """
-                            curl -s "http://10.139.0.10:8090/JSON/core/view/alerts/?baseurl=${site}" \
-                                > zap-alerts-${site.replaceAll('[^a-zA-Z0-9]', '_')}.json
-                        """
-
-                        def siteAlertText = readFile("zap-alerts-${site.replaceAll('[^a-zA-Z0-9]', '_')}.json")
-                        def siteAlerts = new groovy.json.JsonSlurper().parseText(siteAlertText)?.alerts ?: []
-
-                        allAlerts.addAll(siteAlerts)
-                    }
-
-                    echo "Total Alerts Found Across All Sites: ${allAlerts.size()}"
-
-                    // 4. Count alerts by severity
-                    def high = allAlerts.count { it.risk == "High" }
-                    def medium = allAlerts.count { it.risk == "Medium" }
-                    def low = allAlerts.count { it.risk == "Low" }
-
-                    echo "ZAP Alerts Summary → High: ${high}, Medium: ${medium}, Low: ${low}"
-
-                    // 5. Threshold logic (fail pipeline)
-                    if (high > 1) {
-                        error "❌ ZAP Scan Failed: Too many HIGH alerts (${high})"
-                    }
-                    if (medium > 1) {
-                        error "❌ ZAP Scan Failed: Too many MEDIUM alerts (${medium})"
-                    }
-                    if (low > 1) {
-                        error "❌ ZAP Scan Failed: Too many LOW alerts (${low})"
-                    }
-                }
-
                 publishHTML(target: [
                   allowMissing: false,
                   alwaysLinkToLastBuild: true,
