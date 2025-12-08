@@ -171,6 +171,32 @@ pipeline {
                 sh 'mkdir -p configs'
                 sh 'scp /home/ubuntu/configs/rs-config-test.json ./configs/config-test.json'
                 sh 'bash Jenkins/resources/post-zap.sh --mvn'
+                sh '''
+                    echo "[*] Fetching ZAP alerts..."
+                    curl -s "http://10.139.0.10:8090/JSON/core/view/alerts/?baseurl=https://rs.iudx.io/apis" \
+                        > zap-alerts.json
+                '''
+
+                def jsonText = readFile('zap-alerts.json')
+                def parsed = new groovy.json.JsonSlurper().parseText(jsonText)
+                def alerts = parsed.alerts ?: []
+
+
+                def high = alerts.count { it.risk == "High" }
+                def medium = alerts.count { it.risk == "Medium" }
+                def low = alerts.count { it.risk == "Low" }
+
+                echo "ZAP Alerts → High: ${high}, Medium: ${medium}, Low: ${low}"
+
+                if (high > 1) {
+                  error "ZAP Scan Failed: Too many HIGH alerts (${high})"
+                }
+                if (medium > 1) {
+                  error "ZAP Scan Failed: Too many MEDIUM alerts (${medium})"
+                }
+                if (low > 1) {
+                  error "ZAP Scan Failed: Too many LOW alerts (${low})"
+                }
                 publishHTML(target: [
                   allowMissing: false,
                   alwaysLinkToLastBuild: true,
