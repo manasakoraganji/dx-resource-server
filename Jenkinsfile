@@ -199,7 +199,7 @@ pipeline {
                 if (medium > 1) {
                   error "ZAP Scan Failed: Too many MEDIUM alerts (${medium})"
                 }
-                if (low > 2) {
+                if (low > 1) {
                   error "ZAP Scan Failed: Too many LOW alerts (${low})"
                 }
                 publishHTML(target: [
