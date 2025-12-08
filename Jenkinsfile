@@ -57,6 +57,9 @@ pipeline {
         stage('Unit Tests and Code Coverage Test'){
           steps{
             script{
+              // Switch to Java 21
+              sh 'sudo update-alternatives --set java /usr/lib/jvm/java-21-openjdk-amd64/bin/java'
+
               sh 'cp -r example-configs/configs .'
               sh 'cp /home/ubuntu/configs/rs-config-test.json ./configs/config-test.json'
               sh 'mvn clean test checkstyle:checkstyle pmd:pmd'
