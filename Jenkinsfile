@@ -188,6 +188,11 @@ pipeline {
 
                 echo "ZAP Alerts → High: ${high}, Medium: ${medium}, Low: ${low}"
 
+                // FIX: prevent LazyMap serialization
+                parsed = null
+                alerts = null
+                jsonText = null
+
                 if (high > 1) {
                   error "ZAP Scan Failed: Too many HIGH alerts (${high})"
                 }
