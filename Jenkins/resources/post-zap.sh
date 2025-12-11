@@ -6,7 +6,7 @@ ZAP_HOST="10.139.0.10"
 ZAP_PORT="8090"
 ARTIFACT_DIR="/var/lib/jenkins/iudx/rs/zap-artifacts"
 REPORT_FILE="zap-report.html"
-TARGET_API="https://rs.iudx.io"
+TARGET_API="https://rs.iudx.io/apis"
 
 # Parse args
 MODE="$1"
